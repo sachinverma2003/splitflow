@@ -246,340 +246,346 @@ export function AddExpenseModal({
   const payerName = members.find((m) => m.id === payerId)?.name || "Someone";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-      <div className="relative w-full max-w-lg my-6 rounded-2xl bg-slate-900 border border-slate-800 p-5 sm:p-6 shadow-2xl">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
-            <Receipt className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-slate-100">Add an Expense</h3>
-            <p className="text-xs text-slate-400">Track bills, food, trips, and proxy payments</p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title & Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Expense Description <span className="text-rose-400">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Dinner, Villa Booking, Fuel"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
-              />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[92vh] sm:max-h-[88vh] rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+        {/* Sticky Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-900 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+              <Receipt className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Category</label>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-100">Add an Expense</h3>
+              <p className="text-xs text-slate-400">Track bills, food, trips, and proxy payments</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form wrapping scrollable content and sticky footer */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          {/* Scrollable Body */}
+          <div className="overflow-y-auto p-4 sm:p-6 space-y-4 flex-1 overscroll-contain">
+            {/* Title & Category */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Expense Description <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Dinner, Villa Booking, Fuel"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm text-slate-200 outline-none transition-all"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.emoji} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Amount & Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Total Amount <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-400 font-bold">
+                    ₹
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                    value={amountStr}
+                    onChange={(e) => setAmountStr(e.target.value)}
+                    className="w-full pl-8 pr-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-lg font-bold text-white placeholder-slate-600 outline-none transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Date</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm text-slate-200 outline-none transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Proxy Payment: "Paid by" dropdown */}
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <span>Paid by</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
+                    Proxy payment supported
+                  </span>
+                </label>
+                <span className="text-xs text-slate-400">
+                  Who put the cash/UPI?
+                </span>
+              </div>
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm text-slate-200 outline-none transition-all"
+                value={payerId}
+                onChange={(e) => setPayerId(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm font-semibold text-slate-100 outline-none transition-all"
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.emoji} {c.name}
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} {m.isVirtual ? "(Ghost Member)" : ""} {m.upiId ? `• ${m.upiId}` : ""}
                   </option>
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* Amount & Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Split Mode Selector */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Total Amount <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-400 font-bold">
-                  ₹
-                </div>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                  value={amountStr}
-                  onChange={(e) => setAmountStr(e.target.value)}
-                  className="w-full pl-8 pr-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-lg font-bold text-white placeholder-slate-600 outline-none transition-all"
-                />
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-slate-300">Split Method</label>
+                <span className="text-xs text-slate-400">4 split modes supported</span>
+              </div>
+
+              <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setSplitType("EQUAL")}
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                    splitType === "EQUAL"
+                      ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Divide className="w-3.5 h-3.5" />
+                  <span>Equal</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSplitType("EXACT")}
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                    splitType === "EXACT"
+                      ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <IndianRupee className="w-3.5 h-3.5" />
+                  <span>Exact</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSplitType("PERCENTAGE")}
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                    splitType === "PERCENTAGE"
+                      ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Percent className="w-3.5 h-3.5" />
+                  <span>% Split</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSplitType("SHARES")}
+                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                    splitType === "SHARES"
+                      ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Shares</span>
+                </button>
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Date</label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm text-slate-200 outline-none transition-all"
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Proxy Payment: "Paid by" dropdown */}
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800">
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <span>Paid by</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
-                  Proxy payment supported
-                </span>
-              </label>
-              <span className="text-xs text-slate-400">
-                Who put the cash/UPI?
-              </span>
-            </div>
-            <select
-              value={payerId}
-              onChange={(e) => setPayerId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-xl text-sm font-semibold text-slate-100 outline-none transition-all"
-            >
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} {m.isVirtual ? "(Ghost Member)" : ""} {m.upiId ? `• ${m.upiId}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Split Mode Selector */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-300">Split Method</label>
-              <span className="text-xs text-slate-400">4 split modes supported</span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => setSplitType("EQUAL")}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
-                  splitType === "EQUAL"
-                    ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Divide className="w-3.5 h-3.5" />
-                <span>Equal</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSplitType("EXACT")}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
-                  splitType === "EXACT"
-                    ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <IndianRupee className="w-3.5 h-3.5" />
-                <span>Exact</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSplitType("PERCENTAGE")}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
-                  splitType === "PERCENTAGE"
-                    ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Percent className="w-3.5 h-3.5" />
-                <span>% Split</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSplitType("SHARES")}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
-                  splitType === "SHARES"
-                    ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Scale className="w-3.5 h-3.5" />
-                <span>Shares</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Participant Breakdown & Inputs based on Split Mode */}
-          <div className="border border-slate-800 rounded-xl p-3 bg-slate-950/60 max-h-52 overflow-y-auto">
-            {splitType === "EQUAL" && (
-              <div>
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                  <span>Include in split ({selectedMemberIds.length} of {members.length}):</span>
-                  <button
-                    type="button"
-                    onClick={selectAllMembers}
-                    className="text-emerald-400 hover:underline text-[11px] font-medium"
-                  >
-                    Select All
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {members.map((m) => {
-                    const isSelected = selectedMemberIds.includes(m.id);
-                    return (
-                      <div
-                        key={m.id}
-                        onClick={() => toggleMemberSelection(m.id)}
-                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border text-xs transition-all ${
-                          isSelected
-                            ? "bg-emerald-500/10 border-emerald-500/40 text-slate-100"
-                            : "bg-slate-900/50 border-slate-800/80 text-slate-400 hover:border-slate-700"
-                        }`}
-                      >
+            {/* Participant Breakdown & Inputs based on Split Mode */}
+            <div className="border border-slate-800 rounded-xl p-3 bg-slate-950/60 max-h-56 overflow-y-auto">
+              {splitType === "EQUAL" && (
+                <div>
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                    <span>Include in split ({selectedMemberIds.length} of {members.length}):</span>
+                    <button
+                      type="button"
+                      onClick={selectAllMembers}
+                      className="text-emerald-400 hover:underline text-[11px] font-medium"
+                    >
+                      Select All
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {members.map((m) => {
+                      const isSelected = selectedMemberIds.includes(m.id);
+                      return (
                         <div
-                          className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 ${
+                          key={m.id}
+                          onClick={() => toggleMemberSelection(m.id)}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border text-xs transition-all ${
                             isSelected
-                              ? "bg-emerald-500 border-emerald-500 text-slate-950"
-                              : "border-slate-700 bg-slate-800"
+                              ? "bg-emerald-500/10 border-emerald-500/40 text-slate-100"
+                              : "bg-slate-900/50 border-slate-800/80 text-slate-400 hover:border-slate-700"
                           }`}
                         >
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          <div
+                            className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 ${
+                              isSelected
+                                ? "bg-emerald-500 border-emerald-500 text-slate-950"
+                                : "border-slate-700 bg-slate-800"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                          <span className="truncate font-medium">{m.name}</span>
                         </div>
-                        <span className="truncate font-medium">{m.name}</span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {splitType === "EXACT" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-400 mb-2">
+                    Enter exact amounts for each member (Total: ₹{parsedAmount.toFixed(2)}):
+                  </p>
+                  {members.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
+                      <div className="relative w-32">
+                        <span className="absolute left-2.5 top-2 text-slate-500 font-bold">₹</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={customValues[m.id] || ""}
+                          onChange={(e) =>
+                            setCustomValues({ ...customValues, [m.id]: e.target.value })
+                          }
+                          className="w-full pl-6 pr-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {splitType === "PERCENTAGE" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-400 mb-2">
+                    Enter percentage share for each person (Total must be 100%):
+                  </p>
+                  {members.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
+                      <div className="relative w-28">
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="0"
+                          value={customValues[m.id] || ""}
+                          onChange={(e) =>
+                            setCustomValues({ ...customValues, [m.id]: e.target.value })
+                          }
+                          className="w-full pr-6 pl-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
+                        />
+                        <span className="absolute right-2.5 top-2 text-slate-500 font-bold">%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {splitType === "SHARES" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-400 mb-2">
+                    Enter relative units (e.g. 2 shares for someone drinking, 1 share for food):
+                  </p>
+                  {members.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
+                      <div className="relative w-24">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="1"
+                          value={customValues[m.id] ?? "1"}
+                          onChange={(e) =>
+                            setCustomValues({ ...customValues, [m.id]: e.target.value })
+                          }
+                          className="w-full px-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Real-time Calculation Preview Card */}
+            {parsedAmount > 0 && previewSplits.length > 0 && (
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 text-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    Live Calculated Allocation Preview:
+                  </span>
+                  <span
+                    className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                      validationInfo.isValid
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                    }`}
+                  >
+                    {validationInfo.message}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-40 overflow-y-auto">
+                  {previewSplits.map((s) => {
+                    const mName = members.find((m) => m.id === s.memberId)?.name || "Member";
+                    return (
+                      <div
+                        key={s.memberId}
+                        className="flex items-center justify-between bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60"
+                      >
+                        <span className="text-slate-400 truncate max-w-[70px]">{mName}</span>
+                        <span className="font-mono font-bold text-slate-200">₹{s.amountOwed.toFixed(2)}</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
             )}
-
-            {splitType === "EXACT" && (
-              <div className="space-y-2">
-                <p className="text-xs text-slate-400 mb-2">
-                  Enter exact amounts for each member (Total: ₹{parsedAmount.toFixed(2)}):
-                </p>
-                {members.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
-                    <div className="relative w-32">
-                      <span className="absolute left-2.5 top-2 text-slate-500 font-bold">₹</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={customValues[m.id] || ""}
-                        onChange={(e) =>
-                          setCustomValues({ ...customValues, [m.id]: e.target.value })
-                        }
-                        className="w-full pl-6 pr-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {splitType === "PERCENTAGE" && (
-              <div className="space-y-2">
-                <p className="text-xs text-slate-400 mb-2">
-                  Enter percentage share for each person (Total must be 100%):
-                </p>
-                {members.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
-                    <div className="relative w-28">
-                      <input
-                        type="number"
-                        step="1"
-                        placeholder="0"
-                        value={customValues[m.id] || ""}
-                        onChange={(e) =>
-                          setCustomValues({ ...customValues, [m.id]: e.target.value })
-                        }
-                        className="w-full pr-6 pl-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
-                      />
-                      <span className="absolute right-2.5 top-2 text-slate-500 font-bold">%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {splitType === "SHARES" && (
-              <div className="space-y-2">
-                <p className="text-xs text-slate-400 mb-2">
-                  Enter relative units (e.g. 2 shares for someone drinking, 1 share for food):
-                </p>
-                {members.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-slate-300 truncate max-w-[150px]">{m.name}</span>
-                    <div className="relative w-24">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        placeholder="1"
-                        value={customValues[m.id] ?? "1"}
-                        onChange={(e) =>
-                          setCustomValues({ ...customValues, [m.id]: e.target.value })
-                        }
-                        className="w-full px-2 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-right font-mono text-slate-100 outline-none focus:border-emerald-500"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Real-time Calculation Preview Card */}
-          {parsedAmount > 0 && previewSplits.length > 0 && (
-            <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 text-xs">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  Live Calculated Allocation Preview:
-                </span>
-                <span
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                    validationInfo.isValid
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                      : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                  }`}
-                >
-                  {validationInfo.message}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-                {previewSplits.map((s) => {
-                  const mName = members.find((m) => m.id === s.memberId)?.name || "Member";
-                  return (
-                    <div
-                      key={s.memberId}
-                      className="flex items-center justify-between bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60"
-                    >
-                      <span className="text-slate-400 truncate max-w-[70px]">{mName}</span>
-                      <span className="font-mono font-bold text-slate-200">₹{s.amountOwed.toFixed(2)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          {/* Sticky Footer */}
+          <div className="p-3 sm:p-4 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-md flex items-center justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
