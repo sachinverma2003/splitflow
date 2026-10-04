@@ -1,0 +1,85 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  slug        String       @unique // Shareable URL slug, e.g., trip-to-goa-8492
+  name        String
+  currency    String       @default("INR")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  members     Member[]
+  expenses    Expense[]
+  settlements Settlement[]
+}
+
+model Member {
+  id          String        @id @default(cuid())
+  name        String
+  upiId       String?       // e.g. username@okhdfcbank
+  phone       String?
+  isVirtual   Boolean       @default(true) // True if added without an active auth account
+  groupId     String
+  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  paidExpenses Expense[]    @relation("ExpensePayer")
+  expenseSplits ExpenseSplit[]
+  settlementsAsPayer Settlement[] @relation("SettlementPayer")
+  settlementsAsPayee Settlement[] @relation("SettlementPayee")
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([groupId, name])
+}
+
+model Expense {
+  id          String         @id @default(cuid())
+  title       String
+  amount      Float
+  category    String         @default("General")
+  date        DateTime       @default(now())
+  splitType   String         @default("EQUAL") // EQUAL, EXACT, PERCENTAGE, SHARES
+  
+  groupId     String
+  group       Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  payerId     String
+  payer       Member         @relation("ExpensePayer", fields: [payerId], references: [id], onDelete: Cascade)
+  
+  splits      ExpenseSplit[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ExpenseSplit {
+  id          String   @id @default(cuid())
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  amountOwed  Float
+  shareValue  Float?   // Stores custom ratio/percentage input
+
+  @@unique([expenseId, memberId])
+}
+
+model Settlement {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payerId     String
+  payer       Member   @relation("SettlementPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  payeeId     String
+  payee       Member   @relation("SettlementPayee", fields: [payeeId], references: [id], onDelete: Cascade)
+  amount      Float
+  notes       String?
+  settledAt   DateTime @default(now())
+}
