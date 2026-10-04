@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -14,8 +14,19 @@ import {
   CheckCircle,
   Play,
   Share2,
+  Clock,
+  Copy,
+  Trash2,
 } from "lucide-react";
 import { ToastProvider, useToast } from "@/components/Toast";
+
+interface RecentGroup {
+  slug: string;
+  name: string;
+  currency?: string;
+  membersCount?: number;
+  lastVisited?: string;
+}
 
 export default function HomePage() {
   return (
@@ -31,7 +42,40 @@ function HomeContent() {
   const [initialMembers, setInitialMembers] = useState("Sachin, Rahul, Amit");
   const [isCreating, setIsCreating] = useState(false);
   const [isSeedingDemo, setIsSeedingDemo] = useState(false);
+  const [recentGroups, setRecentGroups] = useState<RecentGroup[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("splitflow_recent_groups");
+        if (raw) {
+          setRecentGroups(JSON.parse(raw));
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const handleRemoveRecent = (slug: string) => {
+    try {
+      const updated = recentGroups.filter((g) => g.slug !== slug);
+      setRecentGroups(updated);
+      localStorage.setItem("splitflow_recent_groups", JSON.stringify(updated));
+      toast("Removed from your recent list", "info");
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleCopyGroupLink = (slug: string) => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}/g/${slug}`;
+      navigator.clipboard.writeText(url);
+      toast("Group link copied to clipboard!", "success");
+    }
+  };
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +105,25 @@ function HomeContent() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to create group");
+      }
+
+      // Save to recent groups in localStorage
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("splitflow_recent_groups");
+          const existing = raw ? JSON.parse(raw) : [];
+          const filtered = existing.filter((g: { slug: string }) => g.slug !== data.slug);
+          filtered.unshift({
+            slug: data.slug,
+            name: groupName.trim(),
+            currency: "INR",
+            membersCount: parsedMembers.length > 0 ? parsedMembers.length : 2,
+            lastVisited: new Date().toISOString(),
+          });
+          localStorage.setItem("splitflow_recent_groups", JSON.stringify(filtered.slice(0, 10)));
+        } catch {
+          // ignore
+        }
       }
 
       toast("Group created! Redirecting...", "success");
@@ -198,6 +261,76 @@ function HomeContent() {
             </button>
           </div>
         </div>
+
+        {/* Your Saved & Active Groups (Persisted in browser) */}
+        {recentGroups.length > 0 && (
+          <div className="max-w-xl mx-auto mt-6 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-md text-left animate-in fade-in duration-300">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Your Saved & Active Groups</h3>
+                  <p className="text-[11px] text-slate-400">Saved on this device — reopen anytime</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">
+                {recentGroups.length} groups
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {recentGroups.map((g) => (
+                <div
+                  key={g.slug}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 transition-all group"
+                >
+                  <div
+                    onClick={() => router.push(`/g/${g.slug}`)}
+                    className="flex-1 cursor-pointer min-w-0 pr-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-sm truncate group-hover:text-emerald-400 transition-colors">
+                        {g.name}
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        {g.currency || "INR"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5 font-mono">
+                      /g/{g.slug} {g.membersCount ? `• ${g.membersCount} members` : ""}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => handleCopyGroupLink(g.slug)}
+                      className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                      title="Copy Group Link"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => router.push(`/g/${g.slug}`)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-sm shadow-emerald-500/20"
+                    >
+                      <span>Open</span>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </button>
+                    <button
+                      onClick={() => handleRemoveRecent(g.slug)}
+                      className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800/60 transition-colors"
+                      title="Remove from device list"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Algorithm Demonstration Card */}
         <div className="mt-14 max-w-2xl mx-auto p-5 sm:p-6 rounded-3xl bg-slate-900/60 border border-slate-800 text-left">

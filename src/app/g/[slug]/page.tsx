@@ -16,6 +16,8 @@ import {
   ArrowLeft,
   Sparkles,
   CheckCircle2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { ToastProvider, useToast } from "@/components/Toast";
 import { ExpensesList } from "@/components/ExpensesList";
@@ -118,6 +120,7 @@ function GroupDashboard({ slug }: { slug: string }) {
   const [isGroupQROpen, setIsGroupQROpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const [originUrl, setOriginUrl] = useState("");
   const { toast } = useToast();
@@ -136,6 +139,25 @@ function GroupDashboard({ slug }: { slug: string }) {
       }
       const json = await res.json();
       setData(json);
+
+      // Automatically bookmark/save group to localStorage so it is never lost after closing the browser
+      if (typeof window !== "undefined" && json?.group?.slug) {
+        try {
+          const raw = localStorage.getItem("splitflow_recent_groups");
+          const existing = raw ? JSON.parse(raw) : [];
+          const filtered = existing.filter((g: { slug: string }) => g.slug !== json.group.slug);
+          filtered.unshift({
+            slug: json.group.slug,
+            name: json.group.name,
+            currency: json.group.currency || "INR",
+            membersCount: json.members?.length || 0,
+            lastVisited: new Date().toISOString(),
+          });
+          localStorage.setItem("splitflow_recent_groups", JSON.stringify(filtered.slice(0, 10)));
+        } catch {
+          // ignore localStorage restrictions if private browsing
+        }
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error loading group";
       toast(message, "error");
@@ -143,6 +165,15 @@ function GroupDashboard({ slug }: { slug: string }) {
       setIsLoading(false);
     }
   }, [slug, toast]);
+
+  const handleCopyLink = () => {
+    if (!originUrl) return;
+    const url = `${originUrl}/g/${slug}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    toast("Group link copied to clipboard!", "success");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   useEffect(() => {
     fetchGroup();
@@ -225,6 +256,14 @@ function GroupDashboard({ slug }: { slug: string }) {
             >
               <MessageCircle className="w-4 h-4 text-[#25D366]" />
               <span className="hidden sm:inline">WhatsApp</span>
+            </button>
+
+            <button
+              onClick={handleCopyLink}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors border border-slate-700/60"
+              title="Copy Group Link"
+            >
+              {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             </button>
 
             <button
