@@ -18,6 +18,9 @@ import {
   CheckCircle2,
   Copy,
   Check,
+  ShieldCheck,
+  Crown,
+  Lock,
 } from "lucide-react";
 import { ToastProvider, useToast } from "@/components/Toast";
 import { ExpensesList } from "@/components/ExpensesList";
@@ -25,10 +28,12 @@ import { BalancesView } from "@/components/BalancesView";
 import { MembersView } from "@/components/MembersView";
 import { SettlementsHistoryView } from "@/components/SettlementsHistoryView";
 import { AddExpenseModal } from "@/components/AddExpenseModal";
+import { EditExpenseModal } from "@/components/EditExpenseModal";
 import { AddMemberModal } from "@/components/AddMemberModal";
 import { EditMemberModal } from "@/components/EditMemberModal";
 import { GroupQRModal } from "@/components/GroupQRModal";
 import { WhatsAppShareModal } from "@/components/WhatsAppShareModal";
+import { AdminModal } from "@/components/AdminModal";
 import { MemberBalance, SimplifiedTransaction } from "@/lib/settlement-engine";
 
 interface Member {
@@ -120,7 +125,19 @@ function GroupDashboard({ slug }: { slug: string }) {
   const [isGroupQROpen, setIsGroupQROpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const [adminStatus, setAdminStatus] = useState<{
+    hasAdmin: boolean;
+    isAdminLoggedIn: boolean;
+    adminMemberName: string | null;
+  }>({
+    hasAdmin: false,
+    isAdminLoggedIn: false,
+    adminMemberName: null,
+  });
 
   const [originUrl, setOriginUrl] = useState("");
   const { toast } = useToast();
@@ -130,6 +147,18 @@ function GroupDashboard({ slug }: { slug: string }) {
       setOriginUrl(window.location.origin);
     }
   }, []);
+
+  const fetchAdminStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/groups/${slug}/admin`);
+      if (res.ok) {
+        const json = await res.json();
+        setAdminStatus(json);
+      }
+    } catch {
+      // ignore
+    }
+  }, [slug]);
 
   const fetchGroup = useCallback(async () => {
     try {
@@ -205,7 +234,8 @@ function GroupDashboard({ slug }: { slug: string }) {
 
   useEffect(() => {
     fetchGroup();
-  }, [fetchGroup]);
+    fetchAdminStatus();
+  }, [fetchGroup, fetchAdminStatus]);
 
   const groupUrl = `${originUrl}/g/${slug}`;
 
@@ -277,6 +307,42 @@ function GroupDashboard({ slug }: { slug: string }) {
 
           {/* Action CTAs */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Admin Badge / Trigger Button */}
+            <button
+              onClick={() => setIsAdminModalOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                adminStatus.isAdminLoggedIn
+                  ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-sm shadow-amber-500/10"
+                  : adminStatus.hasAdmin
+                  ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700/80"
+                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+              }`}
+              title={
+                adminStatus.isAdminLoggedIn
+                  ? `Admin mode active as ${adminStatus.adminMemberName}`
+                  : adminStatus.hasAdmin
+                  ? `Admin: ${adminStatus.adminMemberName} (Click to login)`
+                  : "Click to claim 1-Admin control for this group"
+              }
+            >
+              {adminStatus.isAdminLoggedIn ? (
+                <>
+                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Admin: {adminStatus.adminMemberName}</span>
+                </>
+              ) : adminStatus.hasAdmin ? (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="hidden sm:inline">Admin Login</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">Claim Admin</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={() => setIsWhatsAppOpen(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 rounded-xl text-xs font-semibold transition-colors"
@@ -465,6 +531,9 @@ function GroupDashboard({ slug }: { slug: string }) {
             groupSlug={group.slug}
             onExpenseDeleted={fetchGroup}
             onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+            hasAdmin={adminStatus.hasAdmin}
+            isAdmin={adminStatus.isAdminLoggedIn}
+            onOpenEditExpense={(exp) => setEditingExpense(exp)}
           />
         )}
 
@@ -481,6 +550,8 @@ function GroupDashboard({ slug }: { slug: string }) {
             settlements={settlements}
             groupSlug={group.slug}
             onSettlementUndone={fetchGroup}
+            hasAdmin={adminStatus.hasAdmin}
+            isAdmin={adminStatus.isAdminLoggedIn}
           />
         )}
       </main>
@@ -502,6 +573,31 @@ function GroupDashboard({ slug }: { slug: string }) {
         groupSlug={group.slug}
         members={members}
         onExpenseAdded={fetchGroup}
+      />
+
+      {editingExpense && (
+        <EditExpenseModal
+          isOpen={Boolean(editingExpense)}
+          onClose={() => setEditingExpense(null)}
+          groupSlug={group.slug}
+          members={members}
+          expense={editingExpense}
+          onExpenseUpdated={fetchGroup}
+        />
+      )}
+
+      <AdminModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
+        groupSlug={group.slug}
+        members={members}
+        hasAdmin={adminStatus.hasAdmin}
+        isAdminLoggedIn={adminStatus.isAdminLoggedIn}
+        adminMemberName={adminStatus.adminMemberName}
+        onAdminStateChanged={() => {
+          fetchAdminStatus();
+          fetchGroup();
+        }}
       />
 
       <AddMemberModal

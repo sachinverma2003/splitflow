@@ -11,6 +11,8 @@ import {
   Tag,
   IndianRupee,
   PlusCircle,
+  Edit2,
+  Lock,
 } from "lucide-react";
 import { useToast } from "./Toast";
 
@@ -45,6 +47,9 @@ interface ExpensesListProps {
   groupSlug: string;
   onExpenseDeleted: () => void;
   onOpenAddExpense: () => void;
+  hasAdmin?: boolean;
+  isAdmin?: boolean;
+  onOpenEditExpense?: (expense: Expense) => void;
 }
 
 const CATEGORY_EMOJIS: Record<string, string> = {
@@ -62,6 +67,9 @@ export function ExpensesList({
   groupSlug,
   onExpenseDeleted,
   onOpenAddExpense,
+  hasAdmin = false,
+  isAdmin = false,
+  onOpenEditExpense,
 }: ExpensesListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -184,17 +192,43 @@ export function ExpensesList({
               <div className="px-5 pb-4 pt-1 border-t border-slate-800/80 bg-slate-950/40 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
                   <span>Split Allocation Details</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(exp.id, exp.title);
-                    }}
-                    disabled={deletingId === exp.id}
-                    className="flex items-center gap-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded-md transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>{deletingId === exp.id ? "Deleting..." : "Delete Expense"}</span>
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {hasAdmin && !isAdmin ? (
+                      <span className="flex items-center gap-1.5 text-[11px] text-slate-500 font-normal px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+                        <Lock className="w-3 h-3 text-slate-500" />
+                        <span>Admin Protected</span>
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenEditExpense?.(exp);
+                          }}
+                          className="flex items-center gap-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2.5 py-1 rounded-lg transition-colors border border-amber-500/20 text-xs font-medium"
+                          title="Review or edit split"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(exp.id, exp.title);
+                          }}
+                          disabled={deletingId === exp.id}
+                          className="flex items-center gap-1 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2.5 py-1 rounded-lg transition-colors border border-rose-500/20 text-xs font-medium"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>{deletingId === exp.id ? "Deleting..." : "Delete"}</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

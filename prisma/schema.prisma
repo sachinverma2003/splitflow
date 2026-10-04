@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -8,15 +8,20 @@ generator client {
 }
 
 model Group {
-  id          String       @id @default(cuid())
-  slug        String       @unique // Shareable URL slug, e.g., trip-to-goa-8492
-  name        String
-  currency    String       @default("INR")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  members     Member[]
-  expenses    Expense[]
-  settlements Settlement[]
+  id                String       @id @default(cuid())
+  slug              String       @unique // Shareable URL slug, e.g., trip-to-goa-8492
+  name              String
+  currency          String       @default("INR")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // 1-Admin Protection Feature
+  adminMemberId     String?      // ID of the designated single group admin
+  adminPasswordHash String?      // Salted hash of admin password
+
+  members           Member[]
+  expenses          Expense[]
+  settlements       Settlement[]
 }
 
 model Member {
@@ -25,6 +30,7 @@ model Member {
   upiId       String?       // e.g. username@okhdfcbank
   phone       String?
   isVirtual   Boolean       @default(true) // True if added without an active auth account
+  isAdmin     Boolean       @default(false) // True if this member is the group admin
   groupId     String
   group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
   

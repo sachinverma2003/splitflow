@@ -4,7 +4,23 @@ const path = require("path");
 const schemaPath = path.join(__dirname, "..", "prisma", "schema.prisma");
 let schema = fs.readFileSync(schemaPath, "utf8");
 
-const dbUrl = process.env.DATABASE_URL || "";
+let dbUrl = process.env.DATABASE_URL || "";
+
+if (!dbUrl) {
+  const envFiles = [".env.local", ".env.production", ".env"];
+  for (const file of envFiles) {
+    const p = path.join(__dirname, "..", file);
+    if (fs.existsSync(p)) {
+      const content = fs.readFileSync(p, "utf8");
+      const match = content.match(/^DATABASE_URL=["']?([^"'\r\n]+)["']?/m);
+      if (match) {
+        dbUrl = match[1];
+        break;
+      }
+    }
+  }
+}
+
 const isPostgres = dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://");
 
 if (isPostgres) {

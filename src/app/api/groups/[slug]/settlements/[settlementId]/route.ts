@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkAdminStatus } from "@/lib/admin-auth";
 
 export async function DELETE(
   req: Request,
@@ -14,6 +15,15 @@ export async function DELETE(
 
     if (!group) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
+    }
+
+    // Check admin permissions if group has an admin
+    const adminStatus = await checkAdminStatus(req, slug);
+    if (adminStatus.hasAdmin && !adminStatus.isAdminLoggedIn) {
+      return NextResponse.json(
+        { error: "Admin access required. Only the group admin can undo or revert settlements." },
+        { status: 403 }
+      );
     }
 
     await prisma.settlement.delete({
