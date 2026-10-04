@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "prisma db push --accept-data-loss && next build --webpack",
+    "build": "node scripts/prepare-db.js && prisma db push --accept-data-loss && next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/prepare-db.js && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
