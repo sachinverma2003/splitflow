@@ -107,9 +107,21 @@ function HomeContent() {
         throw new Error(data.error || "Failed to create group");
       }
 
-      // Save to recent groups in localStorage
+      // Save to recent groups and full backup in localStorage
       if (typeof window !== "undefined") {
         try {
+          if (data.group) {
+            localStorage.setItem(
+              `splitflow_backup_${data.slug}`,
+              JSON.stringify({
+                group: data.group,
+                members: data.group.members || [],
+                expenses: [],
+                settlements: [],
+              })
+            );
+          }
+
           const raw = localStorage.getItem("splitflow_recent_groups");
           const existing = raw ? JSON.parse(raw) : [];
           const filtered = existing.filter((g: { slug: string }) => g.slug !== data.slug);
@@ -201,7 +213,7 @@ function HomeContent() {
         </h1>
 
         <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
-          No signups. No forced app installs. Add ghost members, log payments on behalf of anyone, and let our Min-Cash-Flow algorithm simplify 10 messy debts into a couple of direct UPI payments.
+          No signups. No forced app installs. Add friends without accounts, log payments on behalf of anyone, and let our Min-Cash-Flow algorithm simplify 10 messy debts into a couple of direct UPI payments.
         </p>
 
         {/* Instant Creation Form Card */}
@@ -235,7 +247,7 @@ function HomeContent() {
                 className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl text-sm text-slate-200 placeholder-slate-500 outline-none transition-all"
               />
               <span className="text-[11px] text-slate-400 mt-1 block">
-                You can always add more ghost members or update UPI IDs later.
+                You can always add more friends or update UPI IDs later.
               </span>
             </div>
 
@@ -371,7 +383,7 @@ function HomeContent() {
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
               <Users className="w-5 h-5" />
             </div>
-            <h4 className="font-bold text-white text-sm mb-1">Ghost Members & Proxy</h4>
+            <h4 className="font-bold text-white text-sm mb-1">No Accounts Needed & Proxy</h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               Add friends who don&apos;t have accounts. Pay on behalf of anyone. No one is locked out or forced to register.
             </p>

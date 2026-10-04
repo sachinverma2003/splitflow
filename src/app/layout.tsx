@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "SplitFlow — Frictionless Expense Sharing & Debt Simplification",
   description:
-    "Zero-friction group expense tracker. Log expenses on behalf of anyone, add ghost members without accounts, simplify debts using the Min-Cash-Flow algorithm, and settle via dynamic UPI QR codes.",
+    "Zero-friction group expense tracker. Log expenses on behalf of anyone, add friends without accounts, simplify debts using the Min-Cash-Flow algorithm, and settle via dynamic UPI QR codes.",
   keywords: ["splitwise alternative", "debt simplification", "upi settlement", "group expenses", "splitflow"],
 };
 

@@ -135,14 +135,42 @@ function GroupDashboard({ slug }: { slug: string }) {
     try {
       const res = await fetch(`/api/groups/${slug}`);
       if (!res.ok) {
+        // Check for local client backup to auto-restore if server container was recycled
+        if (typeof window !== "undefined") {
+          const backupRaw = localStorage.getItem(`splitflow_backup_${slug}`);
+          if (backupRaw) {
+            try {
+              const backupData = JSON.parse(backupRaw);
+              const restoreRes = await fetch("/api/groups/restore", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(backupData),
+              });
+              if (restoreRes.ok) {
+                // Successfully auto-restored! Re-fetch from server
+                const retryRes = await fetch(`/api/groups/${slug}`);
+                if (retryRes.ok) {
+                  const retryJson = await retryRes.json();
+                  setData(retryJson);
+                  toast("Group ledger restored & synchronized!", "success");
+                  return;
+                }
+              }
+            } catch (restoreErr) {
+              console.error("Auto-restore failed:", restoreErr);
+            }
+          }
+        }
         throw new Error("Group not found");
       }
       const json = await res.json();
       setData(json);
 
-      // Automatically bookmark/save group to localStorage so it is never lost after closing the browser
+      // Automatically backup group data to localStorage
       if (typeof window !== "undefined" && json?.group?.slug) {
         try {
+          localStorage.setItem(`splitflow_backup_${json.group.slug}`, JSON.stringify(json));
+
           const raw = localStorage.getItem("splitflow_recent_groups");
           const existing = raw ? JSON.parse(raw) : [];
           const filtered = existing.filter((g: { slug: string }) => g.slug !== json.group.slug);

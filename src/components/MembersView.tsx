@@ -31,7 +31,7 @@ export function MembersView({
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-white text-sm">Ghost / Virtual Members</h4>
+            <h4 className="font-bold text-white text-sm">Friends & Group Members</h4>
             <p className="text-xs text-slate-300 mt-0.5 leading-relaxed max-w-xl">
               Unlike traditional apps where everyone must download an app, create an account, and verify emails, SplitFlow allows you to add any friend instantly. Anyone in the group can log expenses on their behalf and generate ready-to-pay UPI links.
             </p>
@@ -63,7 +63,7 @@ export function MembersView({
                   <div className="min-w-0">
                     <h5 className="font-bold text-slate-100 text-sm truncate">{m.name}</h5>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">
-                      {m.isVirtual ? "Virtual Member" : "Active Member"}
+                      {m.upiId ? "UPI Ready" : "Member"}
                     </span>
                   </div>
                 </div>

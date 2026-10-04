@@ -356,7 +356,7 @@ export function AddExpenseModal({
               >
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.name} {m.isVirtual ? "(Ghost Member)" : ""} {m.upiId ? `• ${m.upiId}` : ""}
+                    {m.name} {m.upiId ? `• ${m.upiId}` : ""}
                   </option>
                 ))}
               </select>

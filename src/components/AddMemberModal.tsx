@@ -80,15 +80,15 @@ export function AddMemberModal({
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-100">Add Member</h3>
-            <p className="text-xs text-slate-400">Add a friend or virtual ghost member</p>
+            <p className="text-xs text-slate-400">Add a friend to this group</p>
           </div>
         </div>
 
-        {/* Ghost member highlight banner */}
+        {/* Feature highlight banner */}
         <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 mb-5">
           <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
           <p className="text-xs text-slate-300 leading-relaxed">
-            <strong>Ghost Member Feature:</strong> They do not need to register, log in, or install anything. You can log expenses on their behalf, and SplitFlow calculates their exact settlements.
+            <strong>Frictionless Member:</strong> They do not need to register, log in, or install anything. Anyone in the group can log expenses on their behalf, and SplitFlow calculates their settlements.
           </p>
         </div>
 
