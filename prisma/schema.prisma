@@ -18,6 +18,7 @@ model Group {
   // 1-Admin Protection Feature
   adminMemberId     String?      // ID of the designated single group admin
   adminPasswordHash String?      // Salted hash of admin password
+  customRoutes      String?      // JSON array of custom directed routes: [{ id, fromMemberId, toMemberId, amount }]
 
   members           Member[]
   expenses          Expense[]

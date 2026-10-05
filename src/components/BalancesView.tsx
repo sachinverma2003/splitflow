@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Scale,
   Sparkles,
@@ -10,9 +10,12 @@ import {
   TrendingUp,
   Info,
   IndianRupee,
+  Crown,
+  RotateCcw,
 } from "lucide-react";
 import { MemberBalance, SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementCard } from "./SettlementCard";
+import { useToast } from "./Toast";
 
 interface BalancesViewProps {
   netBalances: MemberBalance[];
@@ -20,6 +23,9 @@ interface BalancesViewProps {
   groupSlug: string;
   onSettled: () => void;
   onAddUpiPrompt: (memberId: string) => void;
+  isAdmin?: boolean;
+  hasAdmin?: boolean;
+  onOpenDirectRouteModal?: () => void;
 }
 
 export function BalancesView({
@@ -28,14 +34,40 @@ export function BalancesView({
   groupSlug,
   onSettled,
   onAddUpiPrompt,
+  isAdmin,
+  hasAdmin,
+  onOpenDirectRouteModal,
 }: BalancesViewProps) {
   const allSettled = simplifiedTransactions.length === 0;
+  const hasCustomRoutes = simplifiedTransactions.some((tx) => tx.isCustomRoute);
+  const [isResetting, setIsResetting] = useState(false);
+  const { toast } = useToast();
+
+  const handleResetAllRoutes = async () => {
+    try {
+      setIsResetting(true);
+      const res = await fetch(`/api/groups/${groupSlug}/routes?all=true`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to reset custom routes");
+      }
+      toast("Reset to auto-optimal settlements!", "success");
+      onSettled();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error resetting routes";
+      toast(msg, "error");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* 1. Simplified Debt Settlement Section */}
       <div className="bg-slate-950/60 border border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5 sm:mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5 sm:mb-4">
           <div className="flex items-center gap-2.5">
             <div className="p-2 sm:p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -46,13 +78,55 @@ export function BalancesView({
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   Smart
                 </span>
+                {hasCustomRoutes && (
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                    <Crown className="w-2.5 h-2.5" />
+                    Admin Directed
+                  </span>
+                )}
               </h3>
               <p className="text-[11px] sm:text-xs text-slate-400">
                 Algorithmically simplified into the minimum direct payments.
               </p>
             </div>
           </div>
+
+          {/* Admin Directed Controls */}
+          {isAdmin && (
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={onOpenDirectRouteModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+                title="Admin: Direct who should pay whom, and SplitFlow recalculates the rest"
+              >
+                <Crown className="w-3.5 h-3.5 text-purple-400" />
+                <span>Direct Route</span>
+              </button>
+
+              {hasCustomRoutes && (
+                <button
+                  onClick={handleResetAllRoutes}
+                  disabled={isResetting}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+                  title="Clear all admin custom routes and return to automatic Min-Cash-Flow"
+                >
+                  <RotateCcw className="w-3 h-3 text-slate-400" />
+                  <span>{isResetting ? "Resetting..." : "Reset Auto"}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Custom Routes Active Banner */}
+        {hasCustomRoutes && (
+          <div className="mb-3.5 p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-xs text-purple-200 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-purple-400 shrink-0" />
+              <span>Admin Directed Route is active. The remaining group debts have been recalculated around it.</span>
+            </div>
+          </div>
+        )}
 
         {allSettled ? (
           <div className="p-6 sm:p-8 text-center bg-slate-900/60 border border-emerald-500/20 rounded-2xl">
@@ -73,6 +147,7 @@ export function BalancesView({
                 groupSlug={groupSlug}
                 onSettled={onSettled}
                 onAddUpiPrompt={onAddUpiPrompt}
+                isAdmin={isAdmin}
               />
             ))}
           </div>

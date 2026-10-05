@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import confetti from "canvas-confetti";
-import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle } from "lucide-react";
+import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle, Crown, RotateCcw } from "lucide-react";
 import { SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementQRModal } from "./SettlementQRModal";
 import { useToast } from "./Toast";
@@ -12,6 +12,7 @@ interface SettlementCardProps {
   groupSlug: string;
   onSettled: () => void;
   onAddUpiPrompt?: (memberId: string) => void;
+  isAdmin?: boolean;
 }
 
 export function SettlementCard({
@@ -19,10 +20,32 @@ export function SettlementCard({
   groupSlug,
   onSettled,
   onAddUpiPrompt,
+  isAdmin,
 }: SettlementCardProps) {
   const [showQR, setShowQR] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
+  const [isUnpinning, setIsUnpinning] = useState(false);
   const { toast } = useToast();
+
+  const handleUnpinRoute = async () => {
+    try {
+      setIsUnpinning(true);
+      const res = await fetch(`/api/groups/${groupSlug}/routes?id=${transaction.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to unpin route");
+      }
+      toast("Admin directed route removed. Debts recalculated!", "success");
+      onSettled();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error unpinning route";
+      toast(msg, "error");
+    } finally {
+      setIsUnpinning(false);
+    }
+  };
 
   const handleMarkSettled = async () => {
     try {
@@ -69,7 +92,30 @@ export function SettlementCard({
   };
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-3.5 sm:p-5 transition-all shadow-lg hover:shadow-emerald-950/20">
+    <div className={`border rounded-2xl p-3.5 sm:p-5 transition-all shadow-lg ${
+      transaction.isCustomRoute
+        ? "bg-slate-900/95 border-purple-500/40 shadow-purple-950/20"
+        : "bg-slate-900/90 border-slate-800 hover:border-slate-700/80 hover:shadow-emerald-950/20"
+    }`}>
+      {transaction.isCustomRoute && (
+        <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-purple-500/20">
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-purple-300 bg-purple-500/15 px-2.5 py-0.5 rounded-full border border-purple-500/30">
+            <Crown className="w-3 h-3 text-purple-400" />
+            <span>Admin Directed</span>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={handleUnpinRoute}
+              disabled={isUnpinning}
+              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 font-medium transition-colors"
+              title="Unpin this custom route and recalculate automatically"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>{isUnpinning ? "Resetting..." : "Unpin Route"}</span>
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         {/* Debtor & Creditor Flow */}
         <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-4 px-1">

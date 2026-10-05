@@ -26,6 +26,14 @@ export interface SimplifiedTransaction {
   toPhone?: string | null;
   amount: number;
   upiPaymentLink?: string;
+  isCustomRoute?: boolean;
+}
+
+export interface CustomRoute {
+  id: string;
+  fromMemberId: string;
+  toMemberId: string;
+  amount: number;
 }
 
 export interface ParticipantInput {
@@ -120,7 +128,8 @@ export function calculateNetBalances(
  */
 export function simplifyDebts(
   balances: MemberBalance[],
-  groupName?: string
+  groupName?: string,
+  customRoutes?: CustomRoute[]
 ): SimplifiedTransaction[] {
   interface Party {
     memberId: string;
@@ -130,31 +139,78 @@ export function simplifyDebts(
     balance: Decimal;
   }
 
-  const debtors: Party[] = [];
-  const creditors: Party[] = [];
-
+  const partyMap = new Map<string, Party>();
   for (const b of balances) {
-    const dec = new Decimal(b.netBalance);
-    if (dec.lessThan(-0.01)) {
-      debtors.push({
-        memberId: b.memberId,
-        name: b.name,
-        upiId: b.upiId,
-        phone: b.phone,
-        balance: dec, // negative
-      });
-    } else if (dec.greaterThan(0.01)) {
-      creditors.push({
-        memberId: b.memberId,
-        name: b.name,
-        upiId: b.upiId,
-        phone: b.phone,
-        balance: dec, // positive
-      });
-    }
+    partyMap.set(b.memberId, {
+      memberId: b.memberId,
+      name: b.name,
+      upiId: b.upiId,
+      phone: b.phone,
+      balance: new Decimal(b.netBalance),
+    });
   }
 
   const transactions: SimplifiedTransaction[] = [];
+
+  // 1. Process custom routes designated by Admin first
+  if (customRoutes && customRoutes.length > 0) {
+    for (const route of customRoutes) {
+      const debtor = partyMap.get(route.fromMemberId);
+      const creditor = partyMap.get(route.toMemberId);
+
+      if (!debtor || !creditor) continue;
+
+      const debtorRemainingDebt = debtor.balance.lessThan(-0.01) ? debtor.balance.abs() : new Decimal(0);
+      const creditorRemainingCredit = creditor.balance.greaterThan(0.01) ? creditor.balance : new Decimal(0);
+
+      const effectiveAmount = Decimal.min(
+        new Decimal(route.amount),
+        debtorRemainingDebt,
+        creditorRemainingCredit
+      ).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+
+      if (effectiveAmount.greaterThan(0.009)) {
+        const upiLink = creditor.upiId
+          ? generateUpiLink({
+              upiId: creditor.upiId,
+              name: creditor.name,
+              amount: effectiveAmount.toNumber(),
+              groupName,
+            })
+          : undefined;
+
+        transactions.push({
+          id: `custom-${route.id}`,
+          fromMemberId: debtor.memberId,
+          fromMemberName: debtor.name,
+          toMemberId: creditor.memberId,
+          toMemberName: creditor.name,
+          toUpiId: creditor.upiId,
+          toPhone: creditor.phone,
+          amount: effectiveAmount.toNumber(),
+          upiPaymentLink: upiLink,
+          isCustomRoute: true,
+        });
+
+        // Deduct from balances (debtor was negative, so + adds toward 0; creditor was positive, so - subtracts toward 0)
+        debtor.balance = debtor.balance.plus(effectiveAmount);
+        creditor.balance = creditor.balance.minus(effectiveAmount);
+      }
+    }
+  }
+
+  // 2. Partition remaining balances into debtors and creditors
+  const debtors: Party[] = [];
+  const creditors: Party[] = [];
+
+  for (const party of partyMap.values()) {
+    if (party.balance.lessThan(-0.01)) {
+      debtors.push(party);
+    } else if (party.balance.greaterThan(0.01)) {
+      creditors.push(party);
+    }
+  }
+
   let txIndex = 1;
 
   while (debtors.length > 0 && creditors.length > 0) {
@@ -191,6 +247,7 @@ export function simplifyDebts(
         toPhone: topCreditor.phone,
         amount: settleAmount.toNumber(),
         upiPaymentLink: upiLink,
+        isCustomRoute: false,
       });
     }
 

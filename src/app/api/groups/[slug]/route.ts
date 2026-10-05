@@ -64,11 +64,21 @@ export async function GET(
       amount: s.amount,
     }));
 
+    // Parse admin custom directed routes if configured
+    let customRoutes = [];
+    if (group.customRoutes) {
+      try {
+        customRoutes = JSON.parse(group.customRoutes);
+      } catch {
+        customRoutes = [];
+      }
+    }
+
     // Compute Net Balances
     const netBalances = calculateNetBalances(membersData, expensesData, settlementsData);
 
-    // Compute Simplified Min-Cash-Flow Transactions
-    const simplifiedTransactions = simplifyDebts(netBalances, group.name);
+    // Compute Simplified Min-Cash-Flow Transactions with Admin custom routes
+    const simplifiedTransactions = simplifyDebts(netBalances, group.name, customRoutes);
 
     // Compute Total Spend
     const totalSpend = group.expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -87,6 +97,7 @@ export async function GET(
       settlements: group.settlements,
       netBalances,
       simplifiedTransactions,
+      customRoutes,
       totalSpend,
     });
   } catch (error) {

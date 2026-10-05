@@ -34,6 +34,7 @@ import { EditMemberModal } from "@/components/EditMemberModal";
 import { GroupQRModal } from "@/components/GroupQRModal";
 import { WhatsAppShareModal } from "@/components/WhatsAppShareModal";
 import { AdminModal } from "@/components/AdminModal";
+import { CustomRouteModal } from "@/components/CustomRouteModal";
 import { MemberBalance, SimplifiedTransaction } from "@/lib/settlement-engine";
 
 interface Member {
@@ -127,6 +128,7 @@ function GroupDashboard({ slug }: { slug: string }) {
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isCustomRouteModalOpen, setIsCustomRouteModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [adminStatus, setAdminStatus] = useState<{
@@ -583,6 +585,9 @@ function GroupDashboard({ slug }: { slug: string }) {
             groupSlug={group.slug}
             onSettled={fetchGroup}
             onAddUpiPrompt={handlePromptAddUpi}
+            isAdmin={adminStatus.isAdminLoggedIn}
+            hasAdmin={adminStatus.hasAdmin}
+            onOpenDirectRouteModal={() => setIsCustomRouteModalOpen(true)}
           />
         )}
 
@@ -691,6 +696,14 @@ function GroupDashboard({ slug }: { slug: string }) {
         groupUrl={groupUrl}
         totalSpend={totalSpend}
         simplifiedTransactions={simplifiedTransactions}
+      />
+
+      <CustomRouteModal
+        isOpen={isCustomRouteModalOpen}
+        onClose={() => setIsCustomRouteModalOpen(false)}
+        groupSlug={group.slug}
+        netBalances={netBalances}
+        onRouteUpdated={fetchGroup}
       />
     </div>
   );
