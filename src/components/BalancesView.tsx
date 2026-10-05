@@ -16,6 +16,7 @@ import {
 import { MemberBalance, SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementCard } from "./SettlementCard";
 import { useToast } from "./Toast";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface BalancesViewProps {
   netBalances: MemberBalance[];
@@ -48,6 +49,7 @@ export function BalancesView({
       setIsResetting(true);
       const res = await fetch(`/api/groups/${groupSlug}/routes?all=true`, {
         method: "DELETE",
+        headers: getAdminHeaders(groupSlug),
       });
       const data = await res.json();
       if (!res.ok) {

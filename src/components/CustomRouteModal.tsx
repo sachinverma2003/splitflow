@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { X, Crown, ArrowRight, Sparkles, AlertCircle, Check, IndianRupee } from "lucide-react";
 import { MemberBalance } from "@/lib/settlement-engine";
 import { useToast } from "./Toast";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface CustomRouteModalProps {
   isOpen: boolean;
@@ -91,7 +92,10 @@ export function CustomRouteModal({
       setIsSubmitting(true);
       const res = await fetch(`/api/groups/${groupSlug}/routes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAdminHeaders(groupSlug),
+        },
         body: JSON.stringify({
           fromMemberId,
           toMemberId,

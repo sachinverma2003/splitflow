@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useToast } from "./Toast";
 import { calculateSplits } from "@/lib/settlement-engine";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface Member {
   id: string;
@@ -206,7 +207,10 @@ export function EditExpenseModal({
 
       const res = await fetch(`/api/groups/${groupSlug}/expenses/${expense.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAdminHeaders(groupSlug),
+        },
         body: JSON.stringify({
           title: title.trim(),
           amount: parsedAmount,

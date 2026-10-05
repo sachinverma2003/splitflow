@@ -6,6 +6,7 @@ import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle, 
 import { SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementQRModal } from "./SettlementQRModal";
 import { useToast } from "./Toast";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface SettlementCardProps {
   transaction: SimplifiedTransaction;
@@ -32,6 +33,7 @@ export function SettlementCard({
       setIsUnpinning(true);
       const res = await fetch(`/api/groups/${groupSlug}/routes?id=${transaction.id}`, {
         method: "DELETE",
+        headers: getAdminHeaders(groupSlug),
       });
       const data = await res.json();
       if (!res.ok) {

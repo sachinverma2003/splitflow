@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ShieldCheck, Lock, Unlock, Crown, X, KeyRound, UserCheck, AlertCircle } from "lucide-react";
 import { useToast } from "./Toast";
+import { setAdminToken } from "@/lib/admin-client";
 
 interface Member {
   id: string;
@@ -67,6 +68,10 @@ export function AdminModal({
         throw new Error(data.error || "Failed to claim admin");
       }
 
+      if (data.token) {
+        setAdminToken(groupSlug, data.token);
+      }
+
       toast(data.message, "success");
       onAdminStateChanged();
       onClose();
@@ -101,6 +106,10 @@ export function AdminModal({
         throw new Error(data.error || "Login failed");
       }
 
+      if (data.token) {
+        setAdminToken(groupSlug, data.token);
+      }
+
       toast(data.message, "success");
       onAdminStateChanged();
       onClose();
@@ -120,6 +129,7 @@ export function AdminModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "logout" }),
       });
+      setAdminToken(groupSlug, null);
       toast("Logged out of Admin mode", "info");
       onAdminStateChanged();
       onClose();

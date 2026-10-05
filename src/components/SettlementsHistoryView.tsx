@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, RotateCcw, Calendar, ArrowRight, IndianRupee, Lock } from "lucide-react";
 import { useToast } from "./Toast";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface Settlement {
   id: string;
@@ -48,10 +49,12 @@ export function SettlementsHistoryView({
       setUndoingId(settlementId);
       const res = await fetch(`/api/groups/${groupSlug}/settlements/${settlementId}`, {
         method: "DELETE",
+        headers: getAdminHeaders(groupSlug),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error("Failed to undo settlement");
+        throw new Error(data.error || "Failed to undo settlement");
       }
 
       toast("Settlement undone! Ledger balance restored.", "info");

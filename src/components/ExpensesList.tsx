@@ -15,6 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useToast } from "./Toast";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface ExpenseSplit {
   id: string;
@@ -88,10 +89,13 @@ export function ExpensesList({
       setDeletingId(expenseId);
       const res = await fetch(`/api/groups/${groupSlug}/expenses/${expenseId}`, {
         method: "DELETE",
+        headers: getAdminHeaders(groupSlug),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        throw new Error("Failed to delete expense");
+        throw new Error(data.error || "Failed to delete expense");
       }
 
       toast(`Deleted "${title}"`, "info");

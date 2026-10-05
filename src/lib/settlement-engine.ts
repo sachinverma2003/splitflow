@@ -82,10 +82,21 @@ export function calculateNetBalances(
       payerData.expensesPaid = payerData.expensesPaid.plus(new Decimal(exp.amount));
     }
 
-    for (const split of exp.splits) {
-      const splitMember = memberMap.get(split.memberId);
-      if (splitMember) {
-        splitMember.splitsAllocated = splitMember.splitsAllocated.plus(new Decimal(split.amountOwed));
+    // Safeguard: If an expense has 0 splits recorded, allocate equally among members to guarantee zero-sum balance
+    if (exp.splits.length === 0 && members.length > 0) {
+      const share = new Decimal(exp.amount).dividedBy(members.length);
+      for (const m of members) {
+        const sm = memberMap.get(m.id);
+        if (sm) {
+          sm.splitsAllocated = sm.splitsAllocated.plus(share);
+        }
+      }
+    } else {
+      for (const split of exp.splits) {
+        const splitMember = memberMap.get(split.memberId);
+        if (splitMember) {
+          splitMember.splitsAllocated = splitMember.splitsAllocated.plus(new Decimal(split.amountOwed));
+        }
       }
     }
   }

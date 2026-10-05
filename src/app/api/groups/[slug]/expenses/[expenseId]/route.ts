@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkAdminStatus } from "@/lib/admin-auth";
+import { calculateSplits, SplitType } from "@/lib/settlement-engine";
 
 export async function DELETE(
   req: Request,
@@ -71,6 +72,27 @@ export async function PUT(
       return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
+    }
+
+    let finalSplits: { memberId: string; amountOwed: number; shareValue?: number | null }[] = splits;
+    if (!finalSplits || !Array.isArray(finalSplits) || finalSplits.length === 0) {
+      const allMembers = await prisma.member.findMany({ where: { groupId: group.id } });
+      const calculated = calculateSplits(
+        numAmount,
+        (splitType || "EQUAL") as SplitType,
+        allMembers.map((m) => ({ memberId: m.id })),
+        payerId
+      );
+      finalSplits = calculated.map((s) => ({
+        memberId: s.memberId,
+        amountOwed: s.amountOwed,
+        shareValue: s.shareValue ?? null,
+      }));
+    }
+
     // Transaction to update expense and recreate splits
     const updated = await prisma.$transaction(async (tx) => {
       // 1. Delete existing splits
@@ -83,13 +105,13 @@ export async function PUT(
         where: { id: expenseId },
         data: {
           title: title.trim(),
-          amount: parseFloat(amount),
+          amount: numAmount,
           category: category || "General",
           payerId,
           splitType: splitType || "EQUAL",
           date: date ? new Date(date) : existingExpense.date,
           splits: {
-            create: (splits || []).map((s: { memberId: string; amountOwed: number; shareValue?: number }) => ({
+            create: finalSplits.map((s) => ({
               memberId: s.memberId,
               amountOwed: s.amountOwed,
               shareValue: s.shareValue ?? null,

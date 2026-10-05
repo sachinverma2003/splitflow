@@ -36,6 +36,7 @@ import { WhatsAppShareModal } from "@/components/WhatsAppShareModal";
 import { AdminModal } from "@/components/AdminModal";
 import { CustomRouteModal } from "@/components/CustomRouteModal";
 import { MemberBalance, SimplifiedTransaction } from "@/lib/settlement-engine";
+import { getAdminHeaders } from "@/lib/admin-client";
 
 interface Member {
   id: string;
@@ -152,7 +153,9 @@ function GroupDashboard({ slug }: { slug: string }) {
 
   const fetchAdminStatus = useCallback(async () => {
     try {
-      const res = await fetch(`/api/groups/${slug}/admin`);
+      const res = await fetch(`/api/groups/${slug}/admin`, {
+        headers: getAdminHeaders(slug),
+      });
       if (res.ok) {
         const json = await res.json();
         setAdminStatus(json);
