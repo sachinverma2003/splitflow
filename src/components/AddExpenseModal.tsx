@@ -246,22 +246,25 @@ export function AddExpenseModal({
   const payerName = members.find((m) => m.id === payerId)?.name || "Someone";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[92vh] sm:max-h-[88vh] rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[94vh] sm:max-h-[88vh] rounded-t-3xl sm:rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+        {/* Mobile Drag Pill */}
+        <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
+
         {/* Sticky Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-900 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+        <div className="p-3.5 sm:p-5 border-b border-slate-800/80 bg-slate-900 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-2 sm:p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
               <Receipt className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-100">Add an Expense</h3>
-              <p className="text-xs text-slate-400">Track bills, food, trips, and proxy payments</p>
+              <h3 className="text-base sm:text-xl font-bold text-slate-100">Add an Expense</h3>
+              <p className="text-[11px] sm:text-xs text-slate-400">Track bills, food, trips, and proxy payments</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -585,18 +588,18 @@ export function AddExpenseModal({
           </div>
 
           {/* Sticky Footer */}
-          <div className="p-3 sm:p-4 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-md flex items-center justify-end gap-3 shrink-0">
+          <div className="p-3.5 sm:p-4 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-md flex items-center justify-end gap-2.5 shrink-0 pb-safe">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+              className="flex-1 sm:flex-none py-2.5 sm:py-2 px-4 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 border border-slate-800 sm:border-0 transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !validationInfo.isValid || parsedAmount <= 0}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20"
+              className="flex-2 sm:flex-none flex items-center justify-center gap-2 py-2.5 px-6 bg-emerald-500 hover:bg-emerald-600 active:scale-95 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20"
             >
               <Receipt className="w-4 h-4" />
               <span>{isSubmitting ? "Logging..." : "Save Expense"}</span>

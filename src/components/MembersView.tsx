@@ -23,36 +23,36 @@ export function MembersView({
   onOpenEditMember,
 }: MembersViewProps) {
   return (
-    <div className="space-y-6">
-      {/* Ghost Members Explainer Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-slate-900 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 shrink-0">
-            <Sparkles className="w-5 h-5" />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Group Members Explainer Card */}
+      <div className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-slate-900 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="p-2 sm:p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 shrink-0">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
             <h4 className="font-bold text-white text-sm">Friends & Group Members</h4>
-            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed max-w-xl">
-              Unlike traditional apps where everyone must download an app, create an account, and verify emails, SplitFlow allows you to add any friend instantly. Anyone in the group can log expenses on their behalf and generate ready-to-pay UPI links.
+            <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 leading-relaxed max-w-xl">
+              Add friends instantly without forcing them to register or download an app. Anyone can log expenses on their behalf and generate instant UPI links.
             </p>
           </div>
         </div>
 
         <button
           onClick={onOpenAddMember}
-          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 shrink-0"
+          className="flex items-center justify-center gap-1.5 px-3.5 py-2 w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 shrink-0"
         >
           <UserPlus className="w-4 h-4" />
-          Add Member
+          <span>Add Member</span>
         </button>
       </div>
 
       {/* Members Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
         {members.map((m) => (
           <div
             key={m.id}
-            className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition-all shadow-md group"
+            className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between hover:border-slate-700 transition-all shadow-md group"
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">

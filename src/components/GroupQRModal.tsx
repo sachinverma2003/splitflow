@@ -51,8 +51,11 @@ export function GroupQRModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-2xl text-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-sm max-h-[94vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl bg-slate-900 border border-slate-800 p-5 sm:p-6 shadow-2xl text-center pb-safe">
+        {/* Mobile Drag Pill */}
+        <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto -mt-1 mb-3 sm:hidden" />
+
         {/* Close Button */}
         <button
           onClick={onClose}

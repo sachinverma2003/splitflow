@@ -144,58 +144,58 @@ export function ExpensesList({
             {/* Main Header Row */}
             <div
               onClick={() => toggleExpand(exp.id)}
-              className="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer select-none"
+              className="p-3 sm:p-5 flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none"
             >
-              <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
                 {/* Category Avatar */}
-                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-inner">
                   {emoji}
                 </div>
 
-                <div className="min-w-0">
-                  <h4 className="font-bold text-slate-100 text-base truncate">{exp.title}</h4>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
-                    <span className="flex items-center gap-1 text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      <User className="w-3 h-3" />
-                      Paid by {exp.payer.name}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-slate-100 text-sm sm:text-base truncate leading-snug">{exp.title}</h4>
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">
+                    <span className="flex items-center gap-1 text-emerald-400 font-medium bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-500/20 truncate max-w-[120px] sm:max-w-none">
+                      <User className="w-3 h-3 shrink-0" />
+                      <span className="truncate">Paid by {exp.payer.name}</span>
                     </span>
                     <span className="flex items-center gap-1 text-slate-400">
-                      <Calendar className="w-3 h-3" />
-                      {formattedDate}
+                      <Calendar className="w-3 h-3 shrink-0" />
+                      <span>{formattedDate}</span>
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                    <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
                       {exp.splitType}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 <div className="text-right">
-                  <div className="flex items-center justify-end font-extrabold text-lg sm:text-xl text-white">
-                    <IndianRupee className="w-4 h-4 text-emerald-400" />
+                  <div className="flex items-center justify-end font-extrabold text-base sm:text-xl text-white">
+                    <IndianRupee className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                     <span>{exp.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[10px] sm:text-[11px] text-slate-400">
                     {exp.splits.length} {exp.splits.length === 1 ? "person" : "people"}
                   </span>
                 </div>
 
-                <div className="text-slate-400 p-1">
-                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                <div className="text-slate-400 p-0.5 sm:p-1">
+                  {isExpanded ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </div>
               </div>
             </div>
 
             {/* Collapsible Details */}
             {isExpanded && (
-              <div className="px-5 pb-4 pt-1 border-t border-slate-800/80 bg-slate-950/40 animate-in fade-in duration-150">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-                  <span>Split Allocation Details</span>
+              <div className="px-3.5 sm:px-5 pb-4 pt-1.5 border-t border-slate-800/80 bg-slate-950/40 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+                  <span>Split Breakdown</span>
 
                   <div className="flex items-center gap-2">
                     {hasAdmin && !isAdmin ? (
-                      <span className="flex items-center gap-1.5 text-[11px] text-slate-500 font-normal px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800">
+                      <span className="flex items-center gap-1 text-[10px] sm:text-[11px] text-slate-500 font-normal px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800">
                         <Lock className="w-3 h-3 text-slate-500" />
                         <span>Admin Protected</span>
                       </span>
@@ -207,7 +207,7 @@ export function ExpensesList({
                             e.stopPropagation();
                             onOpenEditExpense?.(exp);
                           }}
-                          className="flex items-center gap-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2.5 py-1 rounded-lg transition-colors border border-amber-500/20 text-xs font-medium"
+                          className="flex items-center gap-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 sm:px-2.5 py-1 rounded-lg transition-colors border border-amber-500/20 text-xs font-medium"
                           title="Review or edit split"
                         >
                           <Edit2 className="w-3 h-3" />
