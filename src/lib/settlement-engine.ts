@@ -55,7 +55,7 @@ export interface CalculatedSplit {
 export function calculateNetBalances(
   members: { id: string; name: string; upiId?: string | null; phone?: string | null; isVirtual?: boolean }[],
   expenses: { payerId: string; amount: number; splits: { memberId: string; amountOwed: number }[] }[],
-  settlements: { payerId: string; payeeId: string; amount: number }[]
+  settlements: { payerId: string; payeeId: string; amount: number }[] = []
 ): MemberBalance[] {
   const memberMap = new Map<string, {
     member: typeof members[0];
