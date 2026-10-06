@@ -80,7 +80,7 @@ export function BalancesView({
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                   Smart
                 </span>
-                {hasCustomRoutes && (
+                {isAdmin && hasCustomRoutes && (
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1">
                     <Crown className="w-2.5 h-2.5" />
                     Admin Directed
@@ -120,8 +120,8 @@ export function BalancesView({
           )}
         </div>
 
-        {/* Custom Routes Active Banner */}
-        {hasCustomRoutes && (
+        {/* Custom Routes Active Banner - Only visible to Admin */}
+        {isAdmin && hasCustomRoutes && (
           <div className="mb-3.5 p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-xs text-purple-200 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Crown className="w-4 h-4 text-purple-400 shrink-0" />

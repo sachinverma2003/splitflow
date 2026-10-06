@@ -95,27 +95,25 @@ export function SettlementCard({
 
   return (
     <div className={`border rounded-2xl p-3.5 sm:p-5 transition-all shadow-lg ${
-      transaction.isCustomRoute
+      isAdmin && transaction.isCustomRoute
         ? "bg-slate-900/95 border-purple-500/40 shadow-purple-950/20"
         : "bg-slate-900/90 border-slate-800 hover:border-slate-700/80 hover:shadow-emerald-950/20"
     }`}>
-      {transaction.isCustomRoute && (
+      {isAdmin && transaction.isCustomRoute && (
         <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-purple-500/20">
           <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-purple-300 bg-purple-500/15 px-2.5 py-0.5 rounded-full border border-purple-500/30">
             <Crown className="w-3 h-3 text-purple-400" />
             <span>Admin Directed</span>
           </div>
-          {isAdmin && (
-            <button
-              onClick={handleUnpinRoute}
-              disabled={isUnpinning}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 font-medium transition-colors"
-              title="Unpin this custom route and recalculate automatically"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>{isUnpinning ? "Resetting..." : "Unpin Route"}</span>
-            </button>
-          )}
+          <button
+            onClick={handleUnpinRoute}
+            disabled={isUnpinning}
+            className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 font-medium transition-colors"
+            title="Unpin this custom route and recalculate automatically"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>{isUnpinning ? "Resetting..." : "Unpin Route"}</span>
+          </button>
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
