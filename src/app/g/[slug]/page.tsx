@@ -21,12 +21,16 @@ import {
   ShieldCheck,
   Crown,
   Lock,
+  BarChart3,
+  UserCheck,
+  ChevronDown,
 } from "lucide-react";
 import { ToastProvider, useToast } from "@/components/Toast";
 import { ExpensesList } from "@/components/ExpensesList";
 import { BalancesView } from "@/components/BalancesView";
 import { MembersView } from "@/components/MembersView";
 import { SettlementsHistoryView } from "@/components/SettlementsHistoryView";
+import { AnalyticsView } from "@/components/AnalyticsView";
 import { AddExpenseModal } from "@/components/AddExpenseModal";
 import { EditExpenseModal } from "@/components/EditExpenseModal";
 import { AddMemberModal } from "@/components/AddMemberModal";
@@ -119,7 +123,28 @@ export default function GroupPage({
 function GroupDashboard({ slug }: { slug: string }) {
   const [data, setData] = useState<GroupData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"expenses" | "balances" | "members" | "history">("balances");
+  const [activeTab, setActiveTab] = useState<"expenses" | "balances" | "members" | "history" | "analytics">("balances");
+  const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`splitflow_member_${slug}`);
+      if (saved) {
+        setActiveMemberId(saved);
+      }
+    }
+  }, [slug]);
+
+  const handleSelectActiveMember = (memberId: string | null) => {
+    setActiveMemberId(memberId);
+    if (typeof window !== "undefined") {
+      if (memberId) {
+        localStorage.setItem(`splitflow_member_${slug}`, memberId);
+      } else {
+        localStorage.removeItem(`splitflow_member_${slug}`);
+      }
+    }
+  };
 
   // Modals state
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -391,6 +416,62 @@ function GroupDashboard({ slug }: { slug: string }) {
         </div>
       </header>
 
+      {/* Personalized Member Persona Switcher Bar */}
+      <div className="bg-slate-900/60 border-b border-slate-800/80 px-3 sm:px-4 py-2">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Viewing as:</span>
+            </span>
+            <div className="relative">
+              <select
+                value={activeMemberId || "NONE"}
+                onChange={(e) => handleSelectActiveMember(e.target.value === "NONE" ? null : e.target.value)}
+                className="appearance-none bg-slate-950 border border-slate-800 text-slate-100 font-semibold rounded-xl pl-3 pr-7 py-1 focus:outline-none focus:border-emerald-500/60 cursor-pointer text-xs"
+              >
+                <option value="NONE">👤 All Members (Overview)</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    👤 {m.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Quick Active Member Net Status Banner */}
+          {activeMemberId && data.netBalances.find((b) => b.memberId === activeMemberId) && (() => {
+            const b = data.netBalances.find((item) => item.memberId === activeMemberId)!;
+            return (
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                {b.netBalance > 0.01 ? (
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-xs">
+                    <span>You get back</span>
+                    <span className="font-mono text-emerald-400">
+                      ₹{b.netBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ) : b.netBalance < -0.01 ? (
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-bold text-xs">
+                    <span>You owe</span>
+                    <span className="font-mono text-rose-400">
+                      ₹{Math.abs(b.netBalance).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>You are all settled up!</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
       {/* Hero Group Overview Banner */}
       <div className="bg-slate-950/60 border-b border-slate-800/60 py-3 sm:py-6">
         <div className="max-w-6xl mx-auto px-3 sm:px-4">
@@ -578,6 +659,18 @@ function GroupDashboard({ slug }: { slug: string }) {
               </span>
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab("analytics")}
+            className={`flex-1 min-w-[70px] sm:min-w-0 flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === "analytics"
+                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Insights</span>
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -586,11 +679,13 @@ function GroupDashboard({ slug }: { slug: string }) {
             netBalances={netBalances}
             simplifiedTransactions={simplifiedTransactions}
             groupSlug={group.slug}
+            groupName={group.name}
             onSettled={fetchGroup}
             onAddUpiPrompt={handlePromptAddUpi}
             isAdmin={adminStatus.isAdminLoggedIn}
             hasAdmin={adminStatus.hasAdmin}
             onOpenDirectRouteModal={() => setIsCustomRouteModalOpen(true)}
+            activeMemberId={activeMemberId}
           />
         )}
 
@@ -604,6 +699,7 @@ function GroupDashboard({ slug }: { slug: string }) {
             hasAdmin={adminStatus.hasAdmin}
             isAdmin={adminStatus.isAdminLoggedIn}
             onOpenEditExpense={(exp) => setEditingExpense(exp)}
+            activeMemberId={activeMemberId}
           />
         )}
 
@@ -622,6 +718,17 @@ function GroupDashboard({ slug }: { slug: string }) {
             onSettlementUndone={fetchGroup}
             hasAdmin={adminStatus.hasAdmin}
             isAdmin={adminStatus.isAdminLoggedIn}
+          />
+        )}
+
+        {activeTab === "analytics" && (
+          <AnalyticsView
+            members={members}
+            expenses={expenses}
+            settlements={settlements}
+            simplifiedTransactions={simplifiedTransactions}
+            netBalances={netBalances}
+            totalSpend={totalSpend}
           />
         )}
       </main>

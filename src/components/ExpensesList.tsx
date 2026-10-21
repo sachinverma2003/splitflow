@@ -58,6 +58,7 @@ interface ExpensesListProps {
   hasAdmin?: boolean;
   isAdmin?: boolean;
   onOpenEditExpense?: (expense: Expense) => void;
+  activeMemberId?: string | null;
 }
 
 const CATEGORY_EMOJIS: Record<string, string> = {
@@ -79,6 +80,7 @@ export function ExpensesList({
   hasAdmin = false,
   isAdmin = false,
   onOpenEditExpense,
+  activeMemberId = null,
 }: ExpensesListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -540,9 +542,21 @@ export function ExpensesList({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-slate-100 text-sm sm:text-base truncate leading-snug">
-                        {exp.title}
-                      </h4>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-slate-100 text-sm sm:text-base truncate leading-snug">
+                          {exp.title}
+                        </h4>
+                        {activeMemberId && exp.payerId === activeMemberId && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+                            You Paid
+                          </span>
+                        )}
+                        {activeMemberId && exp.payerId !== activeMemberId && exp.splits.some((s) => s.memberId === activeMemberId) && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 shrink-0">
+                            Your share: ₹{exp.splits.find((s) => s.memberId === activeMemberId)?.amountOwed.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">
                         <span className="flex items-center gap-1 text-emerald-400 font-medium bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-500/20 truncate max-w-[120px] sm:max-w-none">
                           <User className="w-3 h-3 shrink-0" />

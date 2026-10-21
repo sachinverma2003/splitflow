@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "SplitFlow",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

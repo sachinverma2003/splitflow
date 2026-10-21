@@ -22,22 +22,26 @@ interface BalancesViewProps {
   netBalances: MemberBalance[];
   simplifiedTransactions: SimplifiedTransaction[];
   groupSlug: string;
+  groupName?: string;
   onSettled: () => void;
   onAddUpiPrompt: (memberId: string) => void;
   isAdmin?: boolean;
   hasAdmin?: boolean;
   onOpenDirectRouteModal?: () => void;
+  activeMemberId?: string | null;
 }
 
 export function BalancesView({
   netBalances,
   simplifiedTransactions,
   groupSlug,
+  groupName = "Trip",
   onSettled,
   onAddUpiPrompt,
   isAdmin,
   hasAdmin,
   onOpenDirectRouteModal,
+  activeMemberId = null,
 }: BalancesViewProps) {
   const allSettled = simplifiedTransactions.length === 0;
   const hasCustomRoutes = simplifiedTransactions.some((tx) => tx.isCustomRoute);
@@ -64,6 +68,18 @@ export function BalancesView({
       setIsResetting(false);
     }
   };
+
+  const userTransactions = activeMemberId
+    ? simplifiedTransactions.filter(
+        (tx) => tx.fromMemberId === activeMemberId || tx.toMemberId === activeMemberId
+      )
+    : [];
+
+  const otherTransactions = activeMemberId
+    ? simplifiedTransactions.filter(
+        (tx) => tx.fromMemberId !== activeMemberId && tx.toMemberId !== activeMemberId
+      )
+    : simplifiedTransactions;
 
   return (
     <div className="space-y-6">
@@ -141,18 +157,70 @@ export function BalancesView({
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5 sm:space-y-3">
-            {simplifiedTransactions.map((tx) => (
-              <SettlementCard
-                key={tx.id}
-                transaction={tx}
-                groupSlug={groupSlug}
-                onSettled={onSettled}
-                onAddUpiPrompt={onAddUpiPrompt}
-                hasAdmin={hasAdmin}
-                isAdmin={isAdmin}
-              />
-            ))}
+          <div className="space-y-4">
+            {/* If viewing as a specific member, display personal settlements first */}
+            {activeMemberId && (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Your Settlements ({userTransactions.length})</span>
+                  </span>
+                  {userTransactions.length === 0 && (
+                    <span className="text-xs text-emerald-300 font-medium">All squared up! 🎉</span>
+                  )}
+                </div>
+
+                {userTransactions.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {userTransactions.map((tx) => (
+                      <SettlementCard
+                        key={tx.id}
+                        transaction={tx}
+                        groupSlug={groupSlug}
+                        groupName={groupName}
+                        onSettled={onSettled}
+                        onAddUpiPrompt={onAddUpiPrompt}
+                        hasAdmin={hasAdmin}
+                        isAdmin={isAdmin}
+                        activeMemberId={activeMemberId}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-200 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>You have no direct pending payments to settle in this group.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Other Settlements */}
+            {otherTransactions.length > 0 && (
+              <div className="space-y-2.5 pt-1">
+                {activeMemberId && (
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1 block">
+                    Other Group Settlements ({otherTransactions.length})
+                  </span>
+                )}
+                <div className="space-y-2.5 sm:space-y-3">
+                  {otherTransactions.map((tx) => (
+                    <SettlementCard
+                      key={tx.id}
+                      transaction={tx}
+                      groupSlug={groupSlug}
+                      groupName={groupName}
+                      onSettled={onSettled}
+                      onAddUpiPrompt={onAddUpiPrompt}
+                      hasAdmin={hasAdmin}
+                      isAdmin={isAdmin}
+                      activeMemberId={activeMemberId}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -171,16 +239,28 @@ export function BalancesView({
             const isCreditor = b.netBalance > 0.01;
             const isDebtor = b.netBalance < -0.01;
             const isZero = !isCreditor && !isDebtor;
+            const isSelf = activeMemberId && activeMemberId === b.memberId;
 
             return (
               <div
                 key={b.memberId}
-                className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between transition-all hover:border-slate-700 shadow-md"
+                className={`border rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between transition-all shadow-md ${
+                  isSelf
+                    ? "bg-slate-900 border-emerald-500/60 ring-2 ring-emerald-500/30"
+                    : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                }`}
               >
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <h5 className="font-bold text-slate-100 text-sm">{b.name}</h5>
+                      <div className="flex items-center gap-1.5">
+                        <h5 className="font-bold text-slate-100 text-sm">{b.name}</h5>
+                        {isSelf && (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            YOU
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[11px] text-slate-400 font-mono">
                         {b.upiId || "No UPI ID set"}
                       </span>

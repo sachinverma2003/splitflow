@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import confetti from "canvas-confetti";
-import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle, Crown, RotateCcw } from "lucide-react";
+import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle, Crown, RotateCcw, MessageCircle } from "lucide-react";
 import { SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementQRModal } from "./SettlementQRModal";
 import { ConfirmSettlementModal } from "./ConfirmSettlementModal";
@@ -12,19 +12,23 @@ import { getAdminHeaders } from "@/lib/admin-client";
 interface SettlementCardProps {
   transaction: SimplifiedTransaction;
   groupSlug: string;
+  groupName?: string;
   onSettled: () => void;
   onAddUpiPrompt?: (memberId: string) => void;
   hasAdmin?: boolean;
   isAdmin?: boolean;
+  activeMemberId?: string | null;
 }
 
 export function SettlementCard({
   transaction,
   groupSlug,
+  groupName = "Trip",
   onSettled,
   onAddUpiPrompt,
   hasAdmin = false,
   isAdmin = false,
+  activeMemberId = null,
 }: SettlementCardProps) {
   const [showQR, setShowQR] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -103,12 +107,55 @@ export function SettlementCard({
     }
   };
 
+  const isUserDebtor = Boolean(activeMemberId && activeMemberId === transaction.fromMemberId);
+  const isUserCreditor = Boolean(activeMemberId && activeMemberId === transaction.toMemberId);
+
+  const handleNudgeWhatsApp = () => {
+    const groupTitle = groupName || "Trip";
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const formattedAmount = transaction.amount.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    let text = `Hey ${transaction.fromMemberName}! 👋\n\nFriendly reminder for our *${groupTitle}* trip settlement:\n\n💰 *Amount:* ₹${formattedAmount}\n👉 *Payee:* ${transaction.toMemberName}`;
+
+    if (transaction.toUpiId) {
+      text += `\n💳 *UPI ID:* ${transaction.toUpiId}`;
+      text += `\n📲 *Pay via UPI:* ${transaction.upiPaymentLink}`;
+    }
+
+    text += `\n\nView group ledger:\n👉 ${shareUrl}`;
+
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
+  };
+
   return (
     <div className={`border rounded-2xl p-3.5 sm:p-5 transition-all shadow-lg ${
-      isAdmin && transaction.isCustomRoute
+      isUserDebtor
+        ? "bg-rose-950/20 border-rose-500/50 shadow-rose-950/20"
+        : isUserCreditor
+        ? "bg-emerald-950/20 border-emerald-500/50 shadow-emerald-950/20"
+        : isAdmin && transaction.isCustomRoute
         ? "bg-slate-900/95 border-purple-500/40 shadow-purple-950/20"
         : "bg-slate-900/90 border-slate-800 hover:border-slate-700/80 hover:shadow-emerald-950/20"
     }`}>
+      {/* Active Member Personal Notice */}
+      {(isUserDebtor || isUserCreditor) && (
+        <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-800/80">
+          {isUserDebtor ? (
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-rose-300 bg-rose-500/15 px-2.5 py-0.5 rounded-full border border-rose-500/30">
+              <span>⚠️ You owe ₹{transaction.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              <span>💰 {transaction.fromMemberName} owes you ₹{transaction.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {isAdmin && transaction.isCustomRoute && (
         <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-purple-500/20">
           <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-purple-300 bg-purple-500/15 px-2.5 py-0.5 rounded-full border border-purple-500/30">
@@ -163,13 +210,13 @@ export function SettlementCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
+        <div className="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
           {transaction.toUpiId ? (
             <>
               {/* Pay via UPI deep link (GPay, PhonePe, Paytm) */}
               <a
                 href={transaction.upiPaymentLink}
-                className="col-span-2 sm:col-auto flex items-center justify-center gap-2 px-3.5 py-2.5 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 active:scale-95 text-center"
+                className="col-span-3 sm:col-auto flex items-center justify-center gap-2 px-3.5 py-2.5 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 active:scale-95 text-center"
                 title="Direct UPI App Deep Link (GPay / PhonePe / Paytm)"
               >
                 <Smartphone className="w-3.5 h-3.5 text-slate-950" />
@@ -179,10 +226,21 @@ export function SettlementCard({
               {/* Show Dynamic QR Code */}
               <button
                 onClick={() => setShowQR(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-700/60 active:scale-95"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-700/60 active:scale-95 min-h-[40px]"
               >
                 <QrCode className="w-3.5 h-3.5 text-sky-400" />
-                <span>Scan QR</span>
+                <span>QR</span>
+              </button>
+
+              {/* WhatsApp Nudge Button */}
+              <button
+                type="button"
+                onClick={handleNudgeWhatsApp}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold transition-colors active:scale-95 min-h-[40px]"
+                title={`Send friendly WhatsApp payment reminder to ${transaction.fromMemberName}`}
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                <span>Nudge</span>
               </button>
 
               {/* Mark Settled Button */}
@@ -193,7 +251,7 @@ export function SettlementCard({
                 className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/70 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-50 min-h-[40px]"
               >
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isSettling ? "Settling..." : "Mark Settled"}</span>
+                <span>{isSettling ? "..." : "Settle"}</span>
               </button>
             </>
           ) : (
@@ -204,7 +262,18 @@ export function SettlementCard({
                 className="flex items-center justify-center gap-1 px-3 py-2 bg-slate-800/60 border border-slate-700/50 hover:border-amber-500/40 text-slate-400 hover:text-amber-300 rounded-xl text-xs transition-colors min-h-[40px]"
               >
                 <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-                <span>Add UPI ID</span>
+                <span>Add UPI</span>
+              </button>
+
+              {/* WhatsApp Nudge Button */}
+              <button
+                type="button"
+                onClick={handleNudgeWhatsApp}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold transition-colors active:scale-95 min-h-[40px]"
+                title={`Send friendly WhatsApp payment reminder to ${transaction.fromMemberName}`}
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                <span>Nudge</span>
               </button>
 
               <button
@@ -214,7 +283,7 @@ export function SettlementCard({
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50 min-h-[40px]"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>{isSettling ? "Settling..." : "Mark Settled"}</span>
+                <span>{isSettling ? "..." : "Mark Settled"}</span>
               </button>
             </>
           )}
