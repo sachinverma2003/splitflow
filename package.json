@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "node scripts/prepare-db.js && prisma db push --accept-data-loss && next build --webpack",
+    "build": "node scripts/prepare-db.js && prisma generate && next build --webpack",
+    "db:push": "prisma db push",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node scripts/prepare-db.js && prisma generate"
