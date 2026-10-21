@@ -598,6 +598,7 @@ function GroupDashboard({ slug }: { slug: string }) {
           <ExpensesList
             expenses={expenses}
             groupSlug={group.slug}
+            groupName={group.name}
             onExpenseDeleted={fetchGroup}
             onOpenAddExpense={() => setIsAddExpenseOpen(true)}
             hasAdmin={adminStatus.hasAdmin}

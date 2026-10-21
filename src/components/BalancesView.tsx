@@ -149,6 +149,7 @@ export function BalancesView({
                 groupSlug={groupSlug}
                 onSettled={onSettled}
                 onAddUpiPrompt={onAddUpiPrompt}
+                hasAdmin={hasAdmin}
                 isAdmin={isAdmin}
               />
             ))}

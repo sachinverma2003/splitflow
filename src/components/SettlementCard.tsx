@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 import { ArrowRight, QrCode, Smartphone, CheckCircle, IndianRupee, AlertCircle, Crown, RotateCcw } from "lucide-react";
 import { SimplifiedTransaction } from "@/lib/settlement-engine";
 import { SettlementQRModal } from "./SettlementQRModal";
+import { ConfirmSettlementModal } from "./ConfirmSettlementModal";
 import { useToast } from "./Toast";
 import { getAdminHeaders } from "@/lib/admin-client";
 
@@ -13,6 +14,7 @@ interface SettlementCardProps {
   groupSlug: string;
   onSettled: () => void;
   onAddUpiPrompt?: (memberId: string) => void;
+  hasAdmin?: boolean;
   isAdmin?: boolean;
 }
 
@@ -21,9 +23,11 @@ export function SettlementCard({
   groupSlug,
   onSettled,
   onAddUpiPrompt,
-  isAdmin,
+  hasAdmin = false,
+  isAdmin = false,
 }: SettlementCardProps) {
   const [showQR, setShowQR] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
   const [isUnpinning, setIsUnpinning] = useState(false);
   const { toast } = useToast();
@@ -49,18 +53,24 @@ export function SettlementCard({
     }
   };
 
-  const handleMarkSettled = async () => {
+  const handleMarkSettled = async (customNote?: string) => {
     try {
       setIsSettling(true);
 
+      const defaultNote = `Settled via SplitFlow (${transaction.fromMemberName} -> ${transaction.toMemberName})`;
+      const finalNotes = customNote ? `${customNote} | ${defaultNote}` : defaultNote;
+
       const res = await fetch(`/api/groups/${groupSlug}/settlements`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAdminHeaders(groupSlug),
+        },
         body: JSON.stringify({
           payerId: transaction.fromMemberId,
           payeeId: transaction.toMemberId,
           amount: transaction.amount,
-          notes: `Settled via SplitFlow (${transaction.fromMemberName} -> ${transaction.toMemberName})`,
+          notes: finalNotes,
         }),
       });
 
@@ -177,9 +187,10 @@ export function SettlementCard({
 
               {/* Mark Settled Button */}
               <button
-                onClick={handleMarkSettled}
+                type="button"
+                onClick={() => setShowConfirmModal(true)}
                 disabled={isSettling}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/70 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/70 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-50 min-h-[40px]"
               >
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isSettling ? "Settling..." : "Mark Settled"}</span>
@@ -188,17 +199,19 @@ export function SettlementCard({
           ) : (
             <>
               <button
+                type="button"
                 onClick={() => onAddUpiPrompt && onAddUpiPrompt(transaction.toMemberId)}
-                className="flex items-center justify-center gap-1 px-2.5 py-2 bg-slate-800/60 border border-slate-700/50 hover:border-amber-500/40 text-slate-400 hover:text-amber-300 rounded-xl text-xs transition-colors"
+                className="flex items-center justify-center gap-1 px-3 py-2 bg-slate-800/60 border border-slate-700/50 hover:border-amber-500/40 text-slate-400 hover:text-amber-300 rounded-xl text-xs transition-colors min-h-[40px]"
               >
-                <AlertCircle className="w-3 h-3 text-amber-400" />
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
                 <span>Add UPI ID</span>
               </button>
 
               <button
-                onClick={handleMarkSettled}
+                type="button"
+                onClick={() => setShowConfirmModal(true)}
                 disabled={isSettling}
-                className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50 min-h-[40px]"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span>{isSettling ? "Settling..." : "Mark Settled"}</span>
@@ -219,6 +232,19 @@ export function SettlementCard({
           upiPaymentLink={transaction.upiPaymentLink}
         />
       )}
+
+      {/* Confirm Settlement Modal */}
+      <ConfirmSettlementModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleMarkSettled}
+        fromMemberName={transaction.fromMemberName}
+        toMemberName={transaction.toMemberName}
+        amount={transaction.amount}
+        toUpiId={transaction.toUpiId}
+        hasAdmin={hasAdmin}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }
